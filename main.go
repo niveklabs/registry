@@ -6,13 +6,18 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"strings"
+	"os"
 	"time"
 
 	"github.com/gorilla/mux"
 )
 
 var version = "dev"
+
+var registry ModuleVersions
+var discovery = &DiscoveryResponce{
+	Modules: "/v1/modules/",
+}
 
 type DiscoveryResponce struct {
 	Providers string `json:"providers.v1,omitempty"`
@@ -25,31 +30,40 @@ type ModuleVersions struct {
 }
 
 type ModuleProviderVersions struct {
+	ID       string           `json:"id"`
+	Source   string           `json:"source"`
 	Versions []*ModuleVersion `json:"versions"`
 }
 
 type ModuleVersion struct {
-	Version string `json:"version"`
+	Download string `json:"download"`
+	Version  string `json:"version"`
+	Tag      string `json:"tag"`
 }
 
 func downloadHandler(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("X-Terraform-Get", fmt.Sprintf("https://api.github.com/repos/terraform-aws-modules/terraform-aws-vpc/tarball/v%s?archive=tar.gz", strings.Split(r.RequestURI, "/")[6]))
+	vars := mux.Vars(r)
+	download := fmt.Sprintf("https://api.github.com/repos/%s/terraform-%s-%s/tarball/v%s?archive=tar.gz", vars["namespace"], vars["provider"], vars["name"], vars["version"])
+
+	w.Header().Set("X-Terraform-Get", download)
 	w.WriteHeader(http.StatusNoContent)
 	fmt.Fprint(w)
 }
 
 func versionsHandler(w http.ResponseWriter, r *http.Request) {
-
-	moduleVersions := ModuleVersions{
-		Modules: make([]*ModuleProviderVersions, 0),
-	}
-
-	moduleVersions.Modules = append(moduleVersions.Modules, &ModuleProviderVersions{Versions: make([]*ModuleVersion, 0)})
-	moduleVersions.Modules[0].Versions = append(moduleVersions.Modules[0].Versions, &ModuleVersion{Version: "2.42.0"})
-
 	w.Header().Set("Content-Type", "application/json")
 
-	err := json.NewEncoder(w).Encode(moduleVersions)
+	err := json.NewEncoder(w).Encode(registry)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+}
+
+func modulesHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+
+	err := json.NewEncoder(w).Encode(registry)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
@@ -57,13 +71,9 @@ func versionsHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func discoveryHandler(w http.ResponseWriter, r *http.Request) {
-	payload := &DiscoveryResponce{
-		Modules: "/v1/modules/",
-	}
-
 	w.Header().Set("Content-Type", "application/json")
 
-	err := json.NewEncoder(w).Encode(payload)
+	err := json.NewEncoder(w).Encode(discovery)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
@@ -78,17 +88,31 @@ func loggingMiddleware(next http.Handler) http.Handler {
 }
 
 func main() {
-
 	var wait time.Duration
 	var port int
+	var config string
 	flag.DurationVar(&wait, "graceful-timeout", time.Second*15, "the duration for which the server gracefully wait for existing connections to finish - e.g. 15s or 1m")
 	flag.IntVar(&port, "port", 8080, "the port the server will listen on")
+	flag.StringVar(&config, "config", "./registry.json", "the json configuration file")
 	flag.Parse()
+
+	f, err := os.Open(config)
+	if err != nil {
+		panic(err)
+	}
+
+	defer f.Close()
+
+	json.NewDecoder(f).Decode(&registry)
+	if err != nil {
+		panic(err)
+	}
 
 	r := mux.NewRouter()
 
 	// Add your routes as needed
 	r.HandleFunc("/.well-known/terraform.json", discoveryHandler)
+	r.HandleFunc("/v1/modules", modulesHandler)
 	r.HandleFunc("/v1/modules/{namespace}/{name}/{provider}/versions", versionsHandler)
 	r.HandleFunc("/v1/modules/{namespace}/{name}/{provider}/{version}/download", downloadHandler)
 

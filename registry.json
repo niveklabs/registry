@@ -1,0 +1,40 @@
+{
+    "modules": [
+        {
+            "id": "terraform-aws-modules/vpc/aws",
+            "source": "https://github.com/terraform-aws-modules/terraform-aws-vpc",
+            "versions": [
+                {
+                    "version": "2.51.0",
+                    "tag": "v2.51.0",
+                    "download": "https://api.github.com/repos/terraform-aws-modules/terraform-aws-vpc/tarball/v2.51.0"
+                },
+                {
+                    "version": "2.50.0",
+                    "tag": "v2.50.0",
+                    "download": "https://api.github.com/repos/terraform-aws-modules/terraform-aws-vpc/tarball/v2.50.0"
+                },
+                {
+                    "version": "2.49.0",
+                    "tag": "v2.49.0",
+                    "download": "https://api.github.com/repos/terraform-aws-modules/terraform-aws-vpc/tarball/v2.49.0"
+                },
+                {
+                    "version": "2.48.0",
+                    "tag": "v2.48.0",
+                    "download": "https://api.github.com/repos/terraform-aws-modules/terraform-aws-vpc/tarball/v2.48.0"
+                },
+                {
+                    "version": "2.47.0",
+                    "tag": "v2.47.0",
+                    "download": "https://api.github.com/repos/terraform-aws-modules/terraform-aws-vpc/tarball/v2.47.0"
+                },
+                {
+                    "version": "2.46.0",
+                    "tag": "v2.46.0",
+                    "download": "https://api.github.com/repos/terraform-aws-modules/terraform-aws-vpc/tarball/v2.46.0"
+                }
+            ]
+        }
+    ]
+}

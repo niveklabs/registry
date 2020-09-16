@@ -18,6 +18,7 @@ RUN go build -ldflags "-X main.version=${VERSION}" -o registry .
 FROM scratch
 
 COPY --from=builder /build/registry /
+COPY --from=builder /build/registry.json /
 
 EXPOSE 8080
 
