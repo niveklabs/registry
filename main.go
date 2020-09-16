@@ -12,12 +12,13 @@ import (
 	"github.com/gorilla/mux"
 )
 
-var version = "dev"
-
-var registry ModuleVersions
-var discovery = &DiscoveryResponce{
-	Modules: "/v1/modules/",
-}
+var (
+	version   = "dev"
+	registry  ModuleVersions
+	discovery = &DiscoveryResponce{
+		Modules: "/v1/modules/",
+	}
+)
 
 type DiscoveryResponce struct {
 	Providers string `json:"providers.v1,omitempty"`
@@ -48,7 +49,18 @@ func healthHandler(w http.ResponseWriter, r *http.Request) {
 
 func downloadHandler(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
-	download := fmt.Sprintf("https://api.github.com/repos/%s/terraform-%s-%s/tarball/v%s?archive=tar.gz", vars["namespace"], vars["provider"], vars["name"], vars["version"])
+
+	var download string
+	for _, v := range registry.Modules {
+		if v.ID == fmt.Sprintf("%s/%s/%s", vars["namespace"], vars["name"], vars["provider"]) {
+			for _, version := range v.Versions {
+				if version.Version == vars["version"] {
+					download = version.Download
+					break
+				}
+			}
+		}
+	}
 
 	w.Header().Set("X-Terraform-Get", download)
 	w.WriteHeader(http.StatusNoContent)
