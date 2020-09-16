@@ -114,10 +114,8 @@ func loggingMiddleware(next http.Handler) http.Handler {
 }
 
 func main() {
-	var wait time.Duration
 	var port int
 	var config string
-	flag.DurationVar(&wait, "graceful-timeout", time.Second*15, "the duration for which the server gracefully wait for existing connections to finish - e.g. 15s or 1m")
 	flag.IntVar(&port, "port", 8080, "the port the server will listen on")
 	flag.StringVar(&config, "config", "./registry.json", "the json configuration file")
 	flag.Parse()
