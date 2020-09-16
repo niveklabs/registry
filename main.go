@@ -51,9 +51,18 @@ func downloadHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func versionsHandler(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	filtered := make([]*ModuleProviderVersions, 0)
+
+	for _, v := range registry.Modules {
+		if v.ID == fmt.Sprintf("%s/%s/%s", vars["namespace"], vars["name"], vars["provider"]) {
+			filtered = append(filtered, v)
+		}
+	}
+
 	w.Header().Set("Content-Type", "application/json")
 
-	err := json.NewEncoder(w).Encode(registry)
+	err := json.NewEncoder(w).Encode(filtered)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
