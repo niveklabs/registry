@@ -1,11 +1,11 @@
 module "vpc" {
   source  = "registry.development-stack.com/terraform-aws-modules/vpc/aws"
-  version = "~> 2.0"
+  version = "~> 2.51"
 }
 
 module "vpc_explicit" {
   source  = "registry.development-stack.com/terraform-aws-modules/vpc/aws"
-  version = "~> 2.42.0"
+  version = "2.46.0"
 }
 
 # module "vpc_error" {

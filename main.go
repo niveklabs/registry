@@ -41,6 +41,11 @@ type ModuleVersion struct {
 	Tag      string `json:"tag"`
 }
 
+func healthHandler(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusOK)
+	fmt.Fprint(w)
+}
+
 func downloadHandler(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	download := fmt.Sprintf("https://api.github.com/repos/%s/terraform-%s-%s/tarball/v%s?archive=tar.gz", vars["namespace"], vars["provider"], vars["name"], vars["version"])
@@ -62,7 +67,7 @@ func versionsHandler(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 
-	err := json.NewEncoder(w).Encode(filtered)
+	err := json.NewEncoder(w).Encode(&ModuleVersions{filtered})
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
@@ -120,6 +125,7 @@ func main() {
 	r := mux.NewRouter()
 
 	// Add your routes as needed
+	r.HandleFunc("/", healthHandler)
 	r.HandleFunc("/.well-known/terraform.json", discoveryHandler)
 	r.HandleFunc("/v1/modules", modulesHandler)
 	r.HandleFunc("/v1/modules/{namespace}/{name}/{provider}/versions", versionsHandler)
