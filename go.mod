@@ -1,4 +1,4 @@
-module github.com/kheadjr-rv/registry
+module github.com/niveklabs/registry
 
 go 1.14
 
